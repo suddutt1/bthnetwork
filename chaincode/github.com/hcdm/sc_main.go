@@ -30,10 +30,17 @@ func (sc *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return sc.saveMedicalRecord(stub)
 	} else if function == "retrieveMedicalRecords" {
 		return sc.retrieveMedicalRecords(stub)
+	} else if function == "modifyMedicalRecord" {
+		return sc.modifyMedicalRecord(stub)
 	}
 	return sc.handleFunctions(stub)
 }
-
+func (sc *SmartContract) modifyMedicalRecord(stub shim.ChaincodeStubInterface) pb.Response {
+	recordMap := make(map[string]interface{})
+	_, args := stub.GetFunctionAndParameters()
+	json.Unmarshal([]byte(args[0]), &recordMap)
+	return sc.ModifyRecord(stub, recordMap, "recordId")
+}
 func (sc *SmartContract) retrieveMedicalRecords(stub shim.ChaincodeStubInterface) pb.Response {
 	criteriaMap := make(map[string]string)
 	selectionCriteria := ""
@@ -51,6 +58,8 @@ func (sc *SmartContract) retrieveMedicalRecords(stub shim.ChaincodeStubInterface
 		selectionCriteria = fmt.Sprintf("{\"recordCreator\":\"%s\",\"objType\":\"com.hc.mrec\"}", criteriaMap["recordCreator"])
 	case "W_NODOCTOR":
 		selectionCriteria = fmt.Sprintf("{ \"objType\":\"com.hc.mrec\",\"doctorResponded\":{ \"$exists\": false} } ")
+	case "W_DOCTORID":
+		selectionCriteria = fmt.Sprintf("{\"doctorResponded\":\"%s\",\"objType\":\"com.hc.mrec\"}", criteriaMap["doctorResponded"])
 	default:
 		_MAIN_LOGGER.Info("Error in type of search")
 	}

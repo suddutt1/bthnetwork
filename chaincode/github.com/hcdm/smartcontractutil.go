@@ -102,6 +102,30 @@ func (sc *SmartContract) ValidateAndInsertObject(stub shim.ChaincodeStubInterfac
 	return isSuccess, errMsg
 }
 
+//ModifyRecord modifies any record generically
+func (sc *SmartContract) ModifyRecord(stub shim.ChaincodeStubInterface, modifiedObject map[string]interface{}, id string) pb.Response {
+	idField, idOk := modifiedObject[id].(string)
+	if idOk == true && idField != "" {
+		existingObject := make(map[string]interface{})
+		recordBytes, err := stub.GetState(idField)
+		if len(recordBytes) > 0 && err == nil {
+			_SC_LOGGER.Infof("Record with id %s  does exist", idField)
+			json.Unmarshal(recordBytes, &existingObject)
+			objectToSave := sc.ModifyObject(existingObject, modifiedObject)
+			jsonBytes, _ := json.Marshal(objectToSave)
+			jsonBytesPretty, _ := json.MarshalIndent(objectToSave, "", "  ")
+			_SC_LOGGER.Infof("Updated record\n%s\n", string(jsonBytesPretty))
+			stub.PutState(idField, jsonBytes)
+			return shim.Success(jsonBytesPretty)
+		}
+		_SC_LOGGER.Infof("Record with id %s  does not exist", idField)
+		return shim.Error(fmt.Sprintf("Record with id %s  does not exist", idField))
+	}
+	_SC_LOGGER.Infof("Invalid id field provided")
+	return shim.Error("Invalid id field provided")
+
+}
+
 //GetObjectByKey returns data from hyperledger using the key
 func (sc *SmartContract) GetObjectByKey(stub shim.ChaincodeStubInterface, id string) interface{} {
 	var outputObject interface{}
@@ -138,6 +162,29 @@ func (sc *SmartContract) CheckObjects(input interface{}) bool {
 		return true
 	}
 	return false
+}
+
+//ModifyObject modifies a record without destrorying the existing fileds except for the arrays
+func (sc *SmartContract) ModifyObject(existingRecord, deltaRecord map[string]interface{}) map[string]interface{} {
+	for key, value := range deltaRecord {
+		switch value.(type) {
+		case string:
+			existingRecord[key] = value
+		case int:
+			existingRecord[key] = value
+		case interface{}:
+			if existingRecord[key] == nil {
+				existingRecord[key] = value
+			} else {
+				deltaRecordMap := value.(map[string]interface{})
+				existingRecodMap := existingRecord[key].(map[string]interface{})
+				existingRecord[key] = sc.ModifyObject(existingRecodMap, deltaRecordMap)
+			}
+		case []interface{}:
+			existingRecord[key] = value
+		}
+	}
+	return existingRecord
 }
 
 //func (sc *SmartContract) InsertObject()
