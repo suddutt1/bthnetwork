@@ -1,0 +1,16 @@
+OrdererOrgs:
+- Domain: wb.gov.in
+  Name: Orderer
+  Specs:
+  - SANS:
+    - localhost
+  - Hostname: orderer
+PeerOrgs:
+- Domain: wbhealth.gov.in
+  Name: WBHealthDept
+  Template:
+    Count: 1
+    SANS:
+    - localhost
+  Users:
+    Count: 3

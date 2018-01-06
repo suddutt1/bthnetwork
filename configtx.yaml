@@ -1,0 +1,55 @@
+
+Profiles:
+
+    OrdererGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+          HealthCareConsortium:
+             Organizations:
+                - *WBHealthDeptOrg
+                
+    
+    
+    wbhealthChannel:
+        Consortium: HealthCareConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *WBHealthDeptOrg
+                
+     
+Organizations:
+    - &OrdererOrg
+        Name: OrdererMSP
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/wb.gov.in/msp
+    
+    - &WBHealthDeptOrg
+        Name: WBHealthDeptMSP
+        ID: WBHealthDeptMSP
+        MSPDir: crypto-config/peerOrganizations/wbhealth.gov.in/msp
+        AnchorPeers:
+          - Host: peer0.wbhealth.gov.in
+            Port: 7051
+        
+
+Orderer: &OrdererDefaults
+        OrdererType: solo
+        Addresses:
+          - orderer.wb.gov.in:7050
+        BatchTimeout: 2s
+        BatchSize:
+          MaxMessageCount: 10
+          AbsoluteMaxBytes: 98 MB
+          PreferredMaxBytes: 512 KB
+        Kafka:
+          Brokers:
+            - 127.0.0.1:9092
+        Organizations:
+
+    
+Application: &ApplicationDefaults
+    Organizations:

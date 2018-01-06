@@ -1,0 +1,22 @@
+{
+    "orderers":{
+        "name" :"Orderer","mspID":"OrdererMSP","domain":"wb.gov.in","ordererHostname":"orderer","SANS":"localhost","type":"solo"    },
+    "addCA":"false",
+    "orgs":[
+        { 
+            "name" :"WBHealthDept",
+            "domain":"wbhealth.gov.in",
+            "mspID":"WBHealthDeptMSP",
+            "SANS":"localhost",
+            "peerCount":1,
+            "userCount":3
+        }
+        ],
+    "consortium":"HealthCareConsortium",
+    "channels" :[
+                    {"channelName":"wbhealth","orgs":["WBHealthDept"] }
+                ],
+    "chaincodes":[
+                   {"channelName":"wbhealth","ccid":"hcdm","version":"1.0","src":"github.com/hcdm","participants":["WBHealthDept"]}
+                 ]            
+}
