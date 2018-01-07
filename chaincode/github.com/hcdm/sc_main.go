@@ -67,7 +67,22 @@ func (sc *SmartContract) retrieveMedicalRecords(stub shim.ChaincodeStubInterface
 		_MAIN_LOGGER.Infof("Search criteria %s", selectionCriteria)
 		records := sc.RetriveRecords(stub, selectionCriteria)
 		_MAIN_LOGGER.Infof("Number of records found %d", len(records))
-		outputJSON, _ := json.Marshal(records)
+		//Adding the demographic details
+		dgDataCache := make(map[string]interface{})
+		outputRecords := make([]interface{}, 0)
+		for _, medRecord := range records {
+			aadharNumber := medRecord["patientAadharNo"].(string)
+			dgRecord := dgDataCache[aadharNumber]
+			if dgRecord == nil {
+				dgRecord = sc.GetObjectByKey(stub, aadharNumber)
+				dgDataCache[aadharNumber] = dgRecord
+			}
+			outputRow := make(map[string]interface{})
+			outputRow["demographicDetail"] = dgRecord
+			outputRow["medicalRecord"] = medRecord
+			outputRecords = append(outputRecords, outputRow)
+		}
+		outputJSON, _ := json.Marshal(outputRecords)
 		return shim.Success(outputJSON)
 	}
 	return shim.Error("Invalid search type")
