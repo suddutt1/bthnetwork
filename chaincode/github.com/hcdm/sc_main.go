@@ -71,14 +71,18 @@ func (sc *SmartContract) retrieveMedicalRecords(stub shim.ChaincodeStubInterface
 		dgDataCache := make(map[string]interface{})
 		outputRecords := make([]interface{}, 0)
 		for _, medRecord := range records {
-			aadharNumber := medRecord["patientAadharNo"].(string)
-			dgRecord := dgDataCache[aadharNumber]
-			if dgRecord == nil {
-				dgRecord = sc.GetObjectByKey(stub, aadharNumber)
-				dgDataCache[aadharNumber] = dgRecord
-			}
 			outputRow := make(map[string]interface{})
-			outputRow["demographicDetail"] = dgRecord
+			aadharInfo := medRecord["patientAadharNo"]
+			if aadharInfo != nil {
+				aadharNumber := medRecord["patientAadharNo"].(string)
+				dgRecord := dgDataCache[aadharNumber]
+				if dgRecord == nil {
+					dgRecord = sc.GetObjectByKey(stub, aadharNumber)
+					dgDataCache[aadharNumber] = dgRecord
+				}
+				outputRow["demographicDetail"] = dgRecord
+			}
+
 			outputRow["medicalRecord"] = medRecord
 			outputRecords = append(outputRecords, outputRow)
 		}
