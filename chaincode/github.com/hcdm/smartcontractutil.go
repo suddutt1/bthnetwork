@@ -172,6 +172,8 @@ func (sc *SmartContract) ModifyObject(existingRecord, deltaRecord map[string]int
 			existingRecord[key] = value
 		case int:
 			existingRecord[key] = value
+		case []interface{}:
+			existingRecord[key] = value
 		case interface{}:
 			if existingRecord[key] == nil {
 				existingRecord[key] = value
@@ -180,8 +182,7 @@ func (sc *SmartContract) ModifyObject(existingRecord, deltaRecord map[string]int
 				existingRecodMap := existingRecord[key].(map[string]interface{})
 				existingRecord[key] = sc.ModifyObject(existingRecodMap, deltaRecordMap)
 			}
-		case []interface{}:
-			existingRecord[key] = value
+
 		}
 	}
 	return existingRecord
